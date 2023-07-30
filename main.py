@@ -1,26 +1,62 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from PIL import Image
-import json
+from modules import box
+
 
 app = FastAPI()
 
-@app.post("/api/analyze")
+@app.post("/api/analyze-1")
 async def get_image_size(image: UploadFile = File(...),
                          width: str = Form(...),
                          height: str = Form(...),
                          focalLength: str = Form(...)):
+    
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
         return ErrorResponse(400, "잘못된 이미지입니다.")
     
     try:
+        width = int(width)
+        height = int(height)
         focalLength = float(focalLength)
     except ValueError:
-        return ErrorResponse(400, "focalLength는 실수 형식이여야 합니다.")
+        return ErrorResponse(400, "잘못된 형식입니다.")
+    
 
-    width, height, tall = 1, 2, 3
+    width, height, tall = box.calculate_box_size(image, width, height, focalLength)
+
+    return {
+        "status": 200,
+        "response": {
+            "width": width,
+            "height": height,
+            "tall": tall
+            },
+        "errorMessage": None
+        }
+
+@app.post("/api/analyze-2")
+async def get_image_size(image: UploadFile = File(...),
+                         width: str = Form(...),
+                         height: str = Form(...),
+                         focalLength: str = Form(...)):
+    
+    try:
+        image = Image.open(image.file) # 이미지 객체 받아오기
+    except Exception:
+        return ErrorResponse(400, "잘못된 이미지입니다.")
+    
+    try:
+        width = int(width)
+        height = int(height)
+        focalLength = float(focalLength)
+    except ValueError:
+        return ErrorResponse(400, "잘못된 형식입니다.")
+    
+
+    width, height, tall = box.calculate_box_size(image, width, height, focalLength)
 
     return {
         "status": 200,
