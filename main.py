@@ -6,7 +6,10 @@ import json
 app = FastAPI()
 
 @app.post("/api/analyze")
-async def get_image_size(image: UploadFile = File(...), f: str = Form(...)):
+async def get_image_size(image: UploadFile = File(...),
+                         width: int = Form(...),
+                         height: int = Form(...),
+                         focalLength: str = Form(...)):
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
