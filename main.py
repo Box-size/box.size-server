@@ -7,8 +7,8 @@ app = FastAPI()
 
 @app.post("/api/analyze")
 async def get_image_size(image: UploadFile = File(...),
-                         width: int = Form(...),
-                         height: int = Form(...),
+                         width: str = Form(...),
+                         height: str = Form(...),
                          focalLength: str = Form(...)):
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
@@ -16,9 +16,9 @@ async def get_image_size(image: UploadFile = File(...),
         return ErrorResponse(400, "잘못된 이미지입니다.")
     
     try:
-        f = float(f)
+        focalLength = float(focalLength)
     except ValueError:
-        return ErrorResponse(400, "f는 실수 형식이여야 합니다.")
+        return ErrorResponse(400, "focalLength는 실수 형식이여야 합니다.")
 
     width, height, tall = 1, 2, 3
 
