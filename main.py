@@ -8,21 +8,14 @@ app = FastAPI()
 
 @app.post("/api/analyze-1")
 async def get_image_size(image: UploadFile = File(...),
-                         width: str = Form(...),
-                         height: str = Form(...),
-                         focalLength: str = Form(...)):
+                         width: int = Form(...),
+                         height: int = Form(...),
+                         focalLength: float = Form(...)):
     
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
         return ErrorResponse(400, "잘못된 이미지입니다.")
-    
-    try:
-        width = int(width)
-        height = int(height)
-        focalLength = float(focalLength)
-    except ValueError:
-        return ErrorResponse(400, "잘못된 형식입니다.")
     
 
     width, height, tall = box.calculate_box_size(image, width, height, focalLength)
@@ -39,21 +32,14 @@ async def get_image_size(image: UploadFile = File(...),
 
 @app.post("/api/analyze-2")
 async def get_image_size(image: UploadFile = File(...),
-                         width: str = Form(...),
-                         height: str = Form(...),
-                         focalLength: str = Form(...)):
+                         width: int = Form(...),
+                         height: int = Form(...),
+                         focalLength: float = Form(...)):
     
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
         return ErrorResponse(400, "잘못된 이미지입니다.")
-    
-    try:
-        width = int(width)
-        height = int(height)
-        focalLength = float(focalLength)
-    except ValueError:
-        return ErrorResponse(400, "잘못된 형식입니다.")
     
 
     width, height, tall = box.calculate_box_size(image, width, height, focalLength)
