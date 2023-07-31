@@ -27,7 +27,7 @@ def calculate_box_real_length(edges, original, fx, fy, box):
     width, height, tall = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
     cx, cy = original.shape[1] / 2, original.shape[0] / 2
     retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
-    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.018
+    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.0018
 
     return calculate_real_length(width, height, tall, distance, fx)
 
@@ -227,7 +227,7 @@ def main(edges, original, box):
     print(width, height, tall)
 
     #TODO: 카메라의 초점거리와 셀 크기를 알아오는 작업 필요
-    fx, fy, cx, cy = 4777.7, 4777.7, original.shape[1] / 2, original.shape[0] / 2
+    fx, fy, cx, cy = 944.4, 944.4, original.shape[1] / 2, original.shape[0] / 2
 
     #외부 파라미터 추정
     retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
@@ -260,13 +260,12 @@ def main(edges, original, box):
     # 그래프 표시
     plt.show()
 
-    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.018
+    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.0018
     print(distance)
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx)
-    w, h, t = w / 100, h / 100, t / 100 
     #print(w, h, t)
-    return w, h, t
+    return (w / 1000, h / 1000, t / 1000)
 
 def find(img, original, box):
     ###input_path = 'findDot/crops/crop11.png'
@@ -276,4 +275,4 @@ def find(img, original, box):
     fx, fy = 944.4, 944.4
     w, h, t = calculate_box_real_length(img, original, fx, fy, box) 
 
-    return w / 100, h / 100, t / 100
+    return (w / 1000, h / 1000, t / 1000)

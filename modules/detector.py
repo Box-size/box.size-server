@@ -1,11 +1,11 @@
 from ultralytics import YOLO
 import cv2
 
-def detect(image_PIL):
+def detect(image):
     '''박스 감지 후, crop한 이미지와 crop 범위 리턴'''
     
     model = YOLO('modules/detect_model.pt')
-    source = image_PIL
+    source = image
     model.predict(source, imgsz=640, conf=0.5, max_det=1)
     results = model(source)
     boxes = results[0].boxes
