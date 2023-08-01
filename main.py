@@ -61,7 +61,23 @@ def ErrorResponse(status, message):
                                 "response": None,
                                 "errorMessage": message
                             })
-    
+
+@app.post("/api/connection-test")
+async def get_image_size(
+                         width: int = Form(...),
+                         height: int = Form(...),
+                         focalLength: float = Form(...)):
+
+
+    return {
+        "status": 200,
+        "response": {
+            "width": width,
+            "height": height,
+            "focalLength": focalLength
+            },
+        "errorMessage": None
+        }
 
 if __name__ == "__main__":
     import uvicorn
