@@ -20,3 +20,16 @@ Box.size의 FastAPI 백엔드 서버입니다.
 The server operates on [http://localhost:8000](http://localhost:8000).
 
 you can watch [API DOCS in SWAGGER UI](http://52.79.88.247:8000/docs)
+
+
+## 박스 길이 측정
+
+### Run
+
+```sh
+$ python modules/box.py
+```
+
+### Detail
+
+box.py내에서 Image.open()내의 인자를 변화시켜 다른 박스사진으로 테스트 해 볼 수 있습니다.
