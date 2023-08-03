@@ -9,7 +9,7 @@ def findRT():
     # Arrays to store object points and image points from all the images.
     objpoints = [] # 3d point in real world space
     imgpoints = [] # 2d points in image plane.
-    fname = 'firstTest/check.jpg'
+    fname = 'firstTest/check2.jpg'
     img = cv2.imread(fname)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     # Find the chess board corners
@@ -25,6 +25,8 @@ def findRT():
         cv2.waitKey(0)
         ret, mtx, dist, rvec, tvec = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         print(rvec, tvec)
+        print(mtx)
+        print(dist)
     return rvec, tvec
 
 def main():

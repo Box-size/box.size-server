@@ -24,12 +24,16 @@ def calculate_box_real_length(edges, original, fx, fy, box):
     top, bottom, left_top, left_bottom, right_top, right_bottom = classify_points(points)
     away_x, away_y = min(left_top[0], left_bottom[0]), top[1]
     top, bottom, left_top, left_bottom, right_top, right_bottom = adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_x, away_y, original, edges, box)
-    width, height, tall = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
+    width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
     cx, cy = original.shape[1] / 2, original.shape[0] / 2
     retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
-    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.0018
+    print(rvec)
+    rvec=np.array([[ 0.03133224],
+                    [-0.00468171],
+                    [1.55188424]],dtype=np.float32)
+    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
 
-    return calculate_real_length(width, height, tall, distance, fx)
+    return calculate_real_length(width, height, tall, distance, fx, img_width)
 
 
 def classify_points(points):
@@ -69,8 +73,9 @@ def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom):
              math.sqrt((bottom[0] - left_bottom[0])**2 + (bottom[1] - left_bottom[1])**2)) / 2
     tall = (math.sqrt((left_top[0] - left_bottom[0])**2 + (left_top[1] - left_bottom[1])**2) + 
             math.sqrt((right_top[0] - right_bottom[0])**2 + (right_top[1] - right_bottom[1])**2)) / 2
-
-    return width, height, tall
+    h_ratio = height / width
+    t_ratio = tall / width
+    return 100, 100 * h_ratio, 100 * t_ratio, width
 
 
 def find_points_from_edges_image(edges):
@@ -122,8 +127,10 @@ def calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, rig
                             [0, fy, cy],
                             [0, 0, 1]],
                             dtype=np.float32)
-
-    return cv2.solvePnP(object_points, image_points, cameraMatrix, np.zeros(5), flags=cv2.SOLVEPNP_ITERATIVE)
+    #firstTest.py에서 알아온 dist변수 (카메라 왜곡계수)
+    dist=np.array([[ 4.31091149e-01, -2.57772833e+00,  2.75170201e-03, -5.95310821e-03,
+   5.38677345e+00]],np.float32)
+    return cv2.solvePnP(object_points, image_points, cameraMatrix, dist, flags=cv2.SOLVEPNP_ITERATIVE)
 
 
 def calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy):
@@ -162,14 +169,14 @@ def calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy):
     return math.sqrt((C_w[0] - ground_x)**2 + (C_w[1] - ground_y)**2 + C_w[2]**2)
 
 
-def calculate_real_length(width, height, tall, distance, fx):
+def calculate_real_length(width, height, tall, distance, fx, img_width):
     """
     카메라와의 거리를 바탕으로 실제 거리 계산
     """
     #카메라와 거리 : 초점거리 = 실제 박스크기 : 이미지상 박스크기
-    real_width = round(width * distance / fx, 2)
-    real_height = round(height * distance / fx, 2)
-    real_tall = round(tall * distance / fx, 2)
+    real_width = round(img_width * (width/100) * distance / fx, 2)
+    real_height = round(img_width * (height/100) * distance / fx, 2)
+    real_tall = round(img_width * (tall/100) * distance / fx, 2)
 
     return real_width, real_height, real_tall
 
@@ -223,16 +230,20 @@ def main(edges, original, box):
         plt.scatter(x, y, color='red', s=10)
     plt.show()
     #이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이
-    width, height, tall = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
+    width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
     print(width, height, tall)
 
     #TODO: 카메라의 초점거리와 셀 크기를 알아오는 작업 필요
-    fx, fy, cx, cy = 944.4, 944.4, original.shape[1] / 2, original.shape[0] / 2
+    #firstTest.py에서 알아온 카메라 매트릭스 내부의 fx, fy, cx, cy
+    fx, fy, cx, cy = 2.19442776e+03, 2.20205052e+03, 2.11160606e+03, 1.62026407e+03
 
     #외부 파라미터 추정
     retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
-
     print(rvec, tvec)
+    #마찬가지로 firstTest.py에서 알아온 rvec
+    rvec=np.array([[ 0.03133224],
+                    [-0.00468171],
+                    [1.55188424]],dtype=np.float32)
     # 시각화용 코드
     # 3D 좌표계 상에서 카메라의 위치와 방향 계산
     rotation_matrix, _ = cv2.Rodrigues(rvec)
@@ -260,19 +271,19 @@ def main(edges, original, box):
     # 그래프 표시
     plt.show()
 
-    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy) / 0.0018
+    distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
     print(distance)
 
-    w, h, t = calculate_real_length(width, height, tall, distance, fx)
+    w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width)
     #print(w, h, t)
-    return (w / 1000, h / 1000, t / 1000)
+    return (w, h, t)
 
 def find(img, original, box):
     ###input_path = 'findDot/crops/crop11.png'
 
     #TODO: 카메라의 초점거리와 셀 크기(이미지센서 크기)를 알아오는 작업 필요
 
-    fx, fy = 944.4, 944.4
+    fx, fy = 4777.7, 4777.7
     w, h, t = calculate_box_real_length(img, original, fx, fy, box) 
 
-    return (w / 1000, h / 1000, t / 1000)
+    return (w, h, t)
