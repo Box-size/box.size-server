@@ -234,14 +234,13 @@ def main(edges, original, box):
     width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
     print(width, height, tall)
 
-    #TODO: 카메라의 초점거리와 셀 크기를 알아오는 작업 필요
-    #firstTest.py에서 알아온 카메라 매트릭스 내부의 fx, fy, cx, cy
+    #TODO:firstTest.py에서 알아온 카메라 매트릭스 내부의 fx, fy, cx, cy
     fx, fy, cx, cy = 2.19442776e+03, 2.20205052e+03, 2.11160606e+03, 1.62026407e+03
 
     #외부 파라미터 추정
     retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
     print(rvec, tvec)
-    #마찬가지로 firstTest.py에서 알아온 rvec
+    #TODO:마찬가지로 firstTest.py에서 알아온 rvec
     rvec=np.array([[ 0.03133224],
                     [-0.00468171],
                     [1.55188424]],dtype=np.float32)
