@@ -25,9 +25,10 @@ def findRT():
         cv2.waitKey(0)
         ret, mtx, dist, rvec, tvec = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         print(rvec, tvec)
-        print(mtx)
+        fx, fy = mtx[0][0], mtx[1][1]
+        cx, cy = mtx[0][2], mtx[1][2]
         print(dist)
-    return rvec, tvec
+    return tvec, dist, fx, fy, cx, cy
 
 def main():
     rvec, tvec = findRT()
