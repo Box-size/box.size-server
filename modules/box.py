@@ -10,7 +10,7 @@ sys.path.append(parent_dir)
 from PIL import Image
 import numpy as np
 import cv2
-from modules import detector, simplifier, findDot
+from modules import detector, simplifier, findDot, calibration
 
 def calculate_box_size(image : Image, width : int, height : int, focalLength : float):
 
