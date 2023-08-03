@@ -8,7 +8,7 @@ from ultralytics import YOLO
 실제 계산
 1. crop한 이미지 상의 좌표를 구함
 2. 원본 사진으로 좌표 이동
-3. 이미지 상의 상자 크기 구하기
+3. 이미지 상의 상자 크기 구하기(이때, 상자 크기 정규화로 3D상에 표현, width=100으로 산정)
 4. 초점거리, 원본사진의 중점, 2D좌표, 이미자 상의 박스 크기를 이용해 임의로 정한 3D좌표를 이용해 카메라 외부 파라미터(rvec, tvec)을 구함
 5. Rodrigues(rvec)으로 진짜 카메라 정보를 얻은 후, 실제 월드 좌표계의 박스 한 점과, 카메라의 좌표를 구한후 둘 사이 거리 구함
 6. 카메라 초점거리 : 실제 카메라와 물체간 거리 = 이미지 상 박스 크기 : 실제 박스크기 비례식을 이용해 박스 크기 산출
@@ -75,6 +75,7 @@ def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom):
             math.sqrt((right_top[0] - right_bottom[0])**2 + (right_top[1] - right_bottom[1])**2)) / 2
     h_ratio = height / width
     t_ratio = tall / width
+    print(width, h_ratio, t_ratio)
     return 100, 100 * h_ratio, 100 * t_ratio, width
 
 
@@ -117,8 +118,8 @@ def calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, rig
                             dtype=np.float32)
     #3D 좌표계에 생성한 박스 좌표
     object_points = np.array([[0, 0, 0],
-                            [width, 0, 0],
-                            [0, height, 0],
+                            [height, 0, 0],
+                            [0, width, 0],
                             [width, 0, tall],
                             [0, height, tall],
                             [width, height, tall]],
