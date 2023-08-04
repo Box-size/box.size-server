@@ -61,7 +61,7 @@ def classify_points(points):
     return top, bottom, left_top, left_bottom, right_top, right_bottom
 
 
-def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom):
+def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom, diagonal, bottom_ratio):
     """
     이미지 좌표계 상의 가로, 세로, 높이를 추정하는 함수
     """
@@ -75,8 +75,19 @@ def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom):
     h_ratio = height / width
     t_ratio = tall / width
     print(width, h_ratio, t_ratio)
-    return 100, 100 * h_ratio, 100 * t_ratio, width
+    return 100 * diagonal * bottom_ratio, 100 * h_ratio * diagonal * bottom_ratio, 100 * t_ratio * diagonal * bottom_ratio, width
 
+def calc_diagonal(left_bottom, right_top):
+    return math.sqrt((left_bottom[0] - right_top[0])**2 + (left_bottom[1] - right_top[1])**2) / 100
+
+def linear_interpolation(top, bottom, original):
+    inclination = (bottom[1] - top[1]) / (top[0] - bottom[0])
+    x_bottom = (original.shape[0] - bottom[1] + (inclination * bottom[0])) / inclination
+    image_bottom = (x_bottom, original.shape[0])
+    x_top = (0 - bottom[1] + (inclination * bottom[0])) / inclination
+    image_top = (x_top, 0)
+    bottom_ratio = math.sqrt((image_bottom[0] - bottom[0])**2 + (image_bottom[1] - bottom[1])**2) / math.sqrt((image_top[0] - image_bottom[0])**2 + (image_top[1] - image_bottom[1]))
+    return bottom_ratio
 
 def find_points_from_edges_image(edges):
     """
@@ -167,14 +178,14 @@ def calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy):
     return math.sqrt((C_w[0] - ground_x)**2 + (C_w[1] - ground_y)**2 + C_w[2]**2)
 
 
-def calculate_real_length(width, height, tall, distance, fx, img_width):
+def calculate_real_length(width, height, tall, distance, fx, img_width, diagonal, bottom_ratio):
     """
     카메라와의 거리를 바탕으로 실제 거리 계산
     """
     #카메라와 거리 : 초점거리 = 실제 박스크기 : 이미지상 박스크기
-    real_width = round(img_width * (width/100) * distance / fx, 2)
-    real_height = round(img_width * (height/100) * distance / fx, 2)
-    real_tall = round(img_width * (tall/100) * distance / fx, 2)
+    real_width = round(img_width * (width/(100*diagonal*bottom_ratio)) * distance / fx, 2)
+    real_height = round(img_width * (height/(100*diagonal*bottom_ratio)) * distance / fx, 2)
+    real_tall = round(img_width * (tall/(100*diagonal*bottom_ratio)) * distance / fx, 2)
 
     return real_width, real_height, real_tall
 
@@ -226,10 +237,16 @@ def find(edges, original, box, original_ratio, show=False):
             plt.scatter(x, y, color='red', s=10)
         plt.show()
 
-    #이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이
-    width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
-    print(width, height, tall)
+    #상자가 이미지 밑부터 어디까지 떨어졌는지 비율
+    bottom_ratio = linear_interpolation(top, bottom, original)
 
+    #상자 왼쪽밑 ~ 오른쪽위 거리
+    diagonal = calc_diagonal(left_bottom, right_top)
+
+    #이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이
+    width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom, diagonal, bottom_ratio)
+    print(width, height, tall)
+    
     #외부 파라미터 추정
     _retval, _rvec, tvec = calculate_parameters(fx, fy, cx, cy, dist, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
     #print(rvec, tvec)
@@ -265,7 +282,7 @@ def find(edges, original, box, original_ratio, show=False):
     distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
     print(distance)
 
-    w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width)
+    w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width, diagonal, bottom_ratio)
     #TODO: 길이 상수값 나중에 실험 후 확인
-    w, h, t = w*3, h*3, t*3
+    w, h, t = w/1.6, h/1.6, t/1.6
     return (w, h, t)
