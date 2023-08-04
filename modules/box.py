@@ -19,9 +19,9 @@ def calculate_box_size(image : Image, width : int, height : int, focalLength : f
 
     box, xyxy = detector.detect(image) #박스 감지하고 crop 리턴
 
-    box = simplifier.simplify(box) #배경 지우고 외곽선 검출
+    box, original_ratio = simplifier.simplify(box) #배경 지우고, 외곽선 검출
 
-    w, h, t = findDot.find(box, image, xyxy)  #점 찾고 길이 반환 (show=True 시 과정 이미지 보임)
+    w, h, t = findDot.find(box, image, xyxy, original_ratio, show=True)  #점 찾고 길이 반환 (show=True 시 과정 이미지 보임)
 
     print(w,h,t)
 
@@ -47,7 +47,7 @@ def show(img):
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images_cali/test.jpg") # 이미지 테스트
+    image = Image.open("modules/images_cali/st2.jpg") # 이미지 테스트
     image_cali = Image.open("modules/images_cali/check2.jpg") #calibration
 
     calculate_camera_parameters(image_cali)

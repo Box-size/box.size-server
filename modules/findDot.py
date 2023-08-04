@@ -178,18 +178,20 @@ def calculate_real_length(width, height, tall, distance, fx, img_width):
 
     return real_width, real_height, real_tall
 
-def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_x, away_y, original, edges, box):
+def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_y, original_ratio, box):
 
     points = [top, bottom, left_top, left_bottom, right_top, right_bottom]
     new_points = []
+    x_ratio = ((box[0][2] - box[0][0])/original_ratio[0])
+    y_ratio = ((box[0][3] - box[0][1])/original_ratio[1])
     for point in points:
-        new_points.append((point[0] + box[0][0], point[1] + box[0][1]))
+        new_points.append((box[0][0] + point[0] * x_ratio, box[0][1] + point[1] * y_ratio - (away_y * y_ratio)))
 
     return new_points[0], new_points[1], new_points[2], new_points[3], new_points[4], new_points[5]
 
 
 
-def find(edges, original, box, show=False):
+def find(edges, original, box, original_ratio, show=False):
 
     #카메라 파라미터를 구함
     import pickle
@@ -212,11 +214,10 @@ def find(edges, original, box, show=False):
 
     top, bottom, left_top, left_bottom, right_top, right_bottom = classify_points(points)
     #좌표 원본이미지에 맞게 보정
-    away_x, away_y = min(left_top[0], left_bottom[0]), top[1]
-    print(away_x, away_y)
 
     #좌표 조정
-    top, bottom, left_top, left_bottom, right_top, right_bottom = adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_x, away_y, original, edges,box)
+    away_x, away_y = min(left_top[0], left_bottom[0]), top[1]
+    top, bottom, left_top, left_bottom, right_top, right_bottom = adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_y, original_ratio ,box)
     
     if(show):
         new_points = [top, bottom, left_top, left_bottom, right_top, right_bottom]
