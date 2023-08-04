@@ -36,7 +36,7 @@ def findRT(image):
         pass
 
     #print(rvec, dist, fx, fy, cx, cy, sep="\n")
-    return rvec, dist, fx, fy, cx, cy
+    return rvec[0], dist, fx, fy, cx, cy
 
 def findParams(image_PIL):
     '''PIL이미지를 받아 camera parameters를 반환'''
@@ -51,4 +51,4 @@ def findParams(image_PIL):
 if __name__ == '__main__':
     
     image_PIL = Image.open('modules/images_cali/check2.jpg')
-    findParams(image_PIL)
+    print(findParams(image_PIL))
