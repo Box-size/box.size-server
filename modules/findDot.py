@@ -265,5 +265,6 @@ def find(edges, original, box, show=False):
     print(distance)
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width)
-
+    #TODO: 길이 상수값 나중에 실험 후 확인
+    w, h, t = w*3, h*3, t*3
     return (w, h, t)
