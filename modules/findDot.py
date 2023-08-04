@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from ultralytics import YOLO
 
 """
 실제 계산
@@ -15,7 +14,7 @@ from ultralytics import YOLO
 모든 계산 식과 내용은 https://darkpgmr.tistory.com/153 참고
 """
 
-
+'''
 def calculate_box_real_length(edges, original, fx, fy, box):
     """
     윤곽선만 검출한 이미지와 초점거리(fx, fy)로 박스의 실제 가로 세로 높이를 계산한다.
@@ -34,7 +33,7 @@ def calculate_box_real_length(edges, original, fx, fy, box):
     distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
 
     return calculate_real_length(width, height, tall, distance, fx, img_width)
-
+'''
 
 def classify_points(points):
     # y 좌표가 가장 낮은 점을 찾아 맨 위 점으로 설정
@@ -104,7 +103,7 @@ def find_points_from_edges_image(edges):
     return points
 
 
-def calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall):
+def calculate_parameters(fx, fy, cx, cy, dist, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall):
     """
     외부 파라미터 추정
     """
@@ -128,9 +127,7 @@ def calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, rig
                             [0, fy, cy],
                             [0, 0, 1]],
                             dtype=np.float32)
-    #firstTest.py에서 알아온 dist변수 (카메라 왜곡계수)
-    dist=np.array([[ 4.31091149e-01, -2.57772833e+00,  2.75170201e-03, -5.95310821e-03,
-   5.38677345e+00]],np.float32)
+
     return cv2.solvePnP(object_points, image_points, cameraMatrix, dist, flags=cv2.SOLVEPNP_ITERATIVE)
 
 
@@ -182,14 +179,6 @@ def calculate_real_length(width, height, tall, distance, fx, img_width):
     return real_width, real_height, real_tall
 
 def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_x, away_y, original, edges, box):
-    #NOTE: 일단 테스트시엔 보기 편하게 이렇게 넣었습니다.
-    
-    '''model = YOLO('yolo-v8/detect_model.pt')
-    source = 'yolo-v8/images/test2.jpg'
-    results = model(source)
-    boxes = results[0].boxes
-    box = boxes[0] '''
-
 
     points = [top, bottom, left_top, left_bottom, right_top, right_bottom]
     new_points = []
@@ -198,92 +187,83 @@ def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, a
 
     return new_points[0], new_points[1], new_points[2], new_points[3], new_points[4], new_points[5]
 
-def main(edges, original, box):
-    '''
-    input_path = 'findDot/crops/test2.png'
-    original_path = 'yolo-v8/images/test2.jpg'
-    original = cv2.imread(original_path)
-    #윤곽선만 검출한 이미지 가져오기
-    edges = cv2.imread(input_path)
-    edges = cv2.cvtColor(edges, cv2.COLOR_BGR2GRAY)'''
+
+
+def find(edges, original, box, show=False):
+
+    #카메라 파라미터를 구함
+    import pickle
+    paramFile = open("modules/params.bin",'rb')
+    params = pickle.load(paramFile)   # tuple: (rvec, dist, fx, fy, cx, cy)
+    paramFile.close()
+
+    fx, fy, cx, cy = params[2:]
+    dist = params[1]
+    rvec = params[0]
 
     points = find_points_from_edges_image(edges)
 
-
-    # 찾은 점 시각화
-    plt.imshow(edges)
-    for x, y in points:
-        plt.scatter(x, y, color='red', s=10)
-    plt.show()
-
+    if(show):
+        # 찾은 점 시각화
+        plt.imshow(edges)
+        for x, y in points:
+            plt.scatter(x, y, color='red', s=10)
+        plt.show()
 
     top, bottom, left_top, left_bottom, right_top, right_bottom = classify_points(points)
-
     #좌표 원본이미지에 맞게 보정
     away_x, away_y = min(left_top[0], left_bottom[0]), top[1]
     print(away_x, away_y)
 
     #좌표 조정
     top, bottom, left_top, left_bottom, right_top, right_bottom = adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_x, away_y, original, edges,box)
-    new_points = [top, bottom, left_top, left_bottom, right_top, right_bottom]
-    plt.imshow(original)
-    for x, y in new_points:
-        plt.scatter(x, y, color='red', s=10)
-    plt.show()
+    
+    if(show):
+        new_points = [top, bottom, left_top, left_bottom, right_top, right_bottom]
+        plt.imshow(original)
+        for x, y in new_points:
+            plt.scatter(x, y, color='red', s=10)
+        plt.show()
+
     #이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이
     width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom)
     print(width, height, tall)
 
-    #TODO:firstTest.py에서 알아온 카메라 매트릭스 내부의 fx, fy, cx, cy
-    fx, fy, cx, cy = 2.19442776e+03, 2.20205052e+03, 2.11160606e+03, 1.62026407e+03
-
     #외부 파라미터 추정
-    retval, rvec, tvec = calculate_parameters(fx, fy, cx, cy, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
-    print(rvec, tvec)
-    #TODO:마찬가지로 firstTest.py에서 알아온 rvec
-    rvec=np.array([[ 0.03133224],
-                    [-0.00468171],
-                    [1.55188424]],dtype=np.float32)
-    # 시각화용 코드
-    # 3D 좌표계 상에서 카메라의 위치와 방향 계산
-    rotation_matrix, _ = cv2.Rodrigues(rvec)
-    camera_position = -np.dot(rotation_matrix.T, tvec)
+    _retval, _rvec, tvec = calculate_parameters(fx, fy, cx, cy, dist, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
+    #print(rvec, tvec)
+  
+    if(show):
+        # 시각화용 코드
+        # 3D 좌표계 상에서 카메라의 위치와 방향 계산
+        rotation_matrix, _ = cv2.Rodrigues(rvec)
+        camera_position = -np.dot(rotation_matrix.T, tvec)
 
-    # 3D 그래프 생성
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+        # 3D 그래프 생성
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
 
-    # 카메라의 위치와 방향 그리기
-    ax.quiver(camera_position[0], camera_position[1], camera_position[2], rvec[0], rvec[1], rvec[2])
+        # 카메라의 위치와 방향 그리기
+        ax.quiver(camera_position[0], camera_position[1], camera_position[2], rvec[0], rvec[1], rvec[2])
 
-    #3D 좌표계에 생성한 박스 좌표
-    object_points = np.array([[0, 0, 0],
-                            [width, 0, 0],
-                            [0, height, 0],
-                            [width, 0, tall],
-                            [0, height, tall],
-                            [width, height, tall]],
-                            dtype=np.float32)
+        #3D 좌표계에 생성한 박스 좌표
+        object_points = np.array([[0, 0, 0],
+                                [width, 0, 0],
+                                [0, height, 0],
+                                [width, 0, tall],
+                                [0, height, tall],
+                                [width, height, tall]],
+                                dtype=np.float32)
 
-    #물체 위치 그리기
-    ax.scatter3D(object_points[:, 0], object_points[:, 1], object_points[:, 2])
+        #물체 위치 그리기
+        ax.scatter3D(object_points[:, 0], object_points[:, 1], object_points[:, 2])
 
-    # 그래프 표시
-    plt.show()
+        # 그래프 표시
+        plt.show()
 
     distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
     print(distance)
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width)
-    #print(w, h, t)
-    return (w, h, t)
-
-def find(img, original, box):
-    ###input_path = 'findDot/crops/crop11.png'
-
-    #TODO: 카메라의 초점거리와 셀 크기(이미지센서 크기)를 알아오는 작업 필요
-
-    fx, fy = 4777.7, 4777.7
-    w, h, t = calculate_box_real_length(img, original, fx, fy, box) 
 
     return (w, h, t)
