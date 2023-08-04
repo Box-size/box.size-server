@@ -10,7 +10,7 @@ sys.path.append(parent_dir)
 from PIL import Image
 import numpy as np
 import cv2
-from modules import detector, simplifier, findDot
+from modules import detector, simplifier, findDot, calibration
 
 def calculate_box_size(image : Image, width : int, height : int, focalLength : float):
 
@@ -21,11 +21,22 @@ def calculate_box_size(image : Image, width : int, height : int, focalLength : f
 
     box = simplifier.simplify(box) #배경 지우고 외곽선 검출
 
-    w, h, t = findDot.find(box, image, xyxy)  #점 찾고 길이 반환   (findDot.main : 과정 이미지 뜨게)
+    w, h, t = findDot.find(box, image, xyxy)  #점 찾고 길이 반환 (show=True 시 과정 이미지 보임)
 
     print(w,h,t)
 
     return w, h, t
+
+
+def calculate_camera_parameters(image : Image):
+    params =  calibration.findParams(image)
+    #print(rvec, dist, fx, fy, cx, cy, sep="\n")
+
+    #TODO : 어떤 방식으로 서버에 저장할 지 정하기.
+    import pickle
+    paramFile = open("modules/params.bin",'wb')
+    pickle.dump(params, paramFile)
+    paramFile.close()
 
 
 
@@ -36,5 +47,8 @@ def show(img):
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images/test1.jpg") # 이미지 테스트
+    image = Image.open("modules/images_cali/test.jpg") # 이미지 테스트
+    image_cali = Image.open("modules/images_cali/check2.jpg") #calibration
+
+    calculate_camera_parameters(image_cali)
     calculate_box_size(image,800,600,1)

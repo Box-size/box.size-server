@@ -17,8 +17,10 @@ async def get_image_size(image: UploadFile = File(...),
     except Exception:
         return ErrorResponse(400, "잘못된 이미지입니다.")
     
-
-    width, height, tall = box.calculate_box_size(image, width, height, focalLength)
+    try:
+        width, height, tall = box.calculate_box_size(image, width, height, focalLength)
+    except Exception:
+        width, height, tall = 0, 0, 0
 
     return {
         "status": 200,
