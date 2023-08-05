@@ -15,8 +15,10 @@ async def get_image_size_test(image: UploadFile = File(...)):
     except Exception:
         return ErrorResponse(400, "잘못된 이미지입니다.")
     
-
-    rvec, dist, fx, fy, cx, cy = box.calculate_camera_parameters(image)
+    try:
+        rvec, dist, fx, fy, cx, cy = box.calculate_camera_parameters(image)
+    except Exception:
+        return ErrorResponse(400, "인식되지않았습니다. 다시 시도해주세요.")
 
     params = {
         "rvec": rvec.tolist(),
