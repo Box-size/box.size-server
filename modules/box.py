@@ -12,18 +12,18 @@ import numpy as np
 import cv2
 from modules import detector, simplifier, findDot, calibration
 
-def calculate_box_size(image : Image, width : int, height : int, focalLength : float):
+def calculate_box_size(image : Image, params, show=False):
 
     image = np.array(image)   # image를 cv2에서 사용 가능하게 변환
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     box, xyxy = detector.detect(image) #박스 감지하고 crop 리턴
 
-    box = simplifier.simplify(box) #배경 지우고 외곽선 검출
+    box, original_ratio = simplifier.simplify(box) #배경 지우고, 외곽선 검출
 
-    w, h, t = findDot.find(box, image, xyxy)  #점 찾고 길이 반환 (show=True 시 과정 이미지 보임)
+    w, h, t = findDot.find(box, image, xyxy, original_ratio, params, show=show)  #점 찾고 길이 반환 (show=True 시 과정 이미지 보임)
 
-    print(w,h,t)
+    print("최종 계산 결과 w, h, t:", w,h,t)
 
     return w, h, t
 
@@ -33,10 +33,11 @@ def calculate_camera_parameters(image : Image):
     #print(rvec, dist, fx, fy, cx, cy, sep="\n")
 
     #TODO : 어떤 방식으로 서버에 저장할 지 정하기.
-    import pickle
-    paramFile = open("modules/params.bin",'wb')
-    pickle.dump(params, paramFile)
-    paramFile.close()
+    return params
+    # import pickle
+    # paramFile = open("modules/params.bin",'wb')
+    # pickle.dump(params, paramFile)
+    # paramFile.close()
 
 
 
@@ -47,8 +48,9 @@ def show(img):
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images_cali/test.jpg") # 이미지 테스트
+    image = Image.open("modules/images_cali/st2.jpg") # 이미지 테스트
     image_cali = Image.open("modules/images_cali/check2.jpg") #calibration
 
-    calculate_camera_parameters(image_cali)
-    calculate_box_size(image,800,600,1)
+    params = calculate_camera_parameters(image_cali)
+    print("calculate_camera_parameters 결과:", params)
+    calculate_box_size(image, params, show=True)
