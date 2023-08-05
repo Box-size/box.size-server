@@ -13,7 +13,7 @@ async def get_image_size_test(image: UploadFile = File(...)):
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
-        return ErrorResponse(400, "잘못된 이미지입니다.")
+        return ErrorResponse(400, "이미지 처리를 할 수 없는 이미지입니다.")
     
     try:
         rvec, dist, fx, fy, cx, cy = box.calculate_camera_parameters(image)
@@ -52,7 +52,7 @@ async def get_image_size1(image: UploadFile = File(...), params : str = File(...
     try:
         image = Image.open(image.file) # 이미지 객체 받아오기
     except Exception:
-        return ErrorResponse(400, "잘못된 이미지입니다.")
+        return ErrorResponse(400, "이미지 처리를 할 수 없는 이미지입니다.")
     try:    
         params_dict = json.loads(params)
         params_list = [np.array(params_dict["rvec"]), np.array(params_dict["dist"]), params_dict["fx"], params_dict["fy"], params_dict["cx"], params_dict["cy"]]
