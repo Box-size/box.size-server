@@ -74,7 +74,7 @@ def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom, 
             math.sqrt((right_top[0] - right_bottom[0])**2 + (right_top[1] - right_bottom[1])**2)) / 2
     h_ratio = height / width
     t_ratio = tall / width
-    print(width, h_ratio, t_ratio)
+    print("(calc_pixel_w_h)width, h_ratio, t_ratio:", width, h_ratio, t_ratio)
     return 100 * diagonal * bottom_ratio, 100 * h_ratio * diagonal * bottom_ratio, 100 * t_ratio * diagonal * bottom_ratio, width
 
 def calc_diagonal(left_bottom, right_top):
@@ -206,13 +206,13 @@ def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, a
 
 
 
-def find(edges, original, box, original_ratio, show=False):
+def find(edges, original, box, original_ratio, params, show=False):
 
     #카메라 파라미터를 구함
-    import pickle
-    paramFile = open("modules/params.bin",'rb')
-    params = pickle.load(paramFile)   # tuple: (rvec, dist, fx, fy, cx, cy)
-    paramFile.close()
+    # import pickle
+    # paramFile = open("modules/params.bin",'rb')
+    # params = pickle.load(paramFile)   # tuple: (rvec, dist, fx, fy, cx, cy)
+    # paramFile.close()
 
     fx, fy, cx, cy = params[2:]
     dist = params[1]
@@ -249,7 +249,7 @@ def find(edges, original, box, original_ratio, show=False):
 
     #이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이
     width, height, tall, img_width = calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom, diagonal, bottom_ratio)
-    print(width, height, tall)
+    print("이미지 꼭지점 좌표를 토대로 구한 가로, 세로, 높이:", width, height, tall)
     
     #외부 파라미터 추정
     _retval, _rvec, tvec = calculate_parameters(fx, fy, cx, cy, dist, top, bottom, left_top, left_bottom, right_top, right_bottom, width, height, tall)
@@ -284,7 +284,7 @@ def find(edges, original, box, original_ratio, show=False):
         plt.show()
 
     distance = calculate_distance(rvec, tvec, bottom, fx, fy, cx, cy)
-    print(distance)
+    print("distance:", distance)
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width, diagonal, bottom_ratio)
     #TODO: 길이 상수값 나중에 실험 후 확인
