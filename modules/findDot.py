@@ -82,16 +82,21 @@ def calc_diagonal(left_bottom, right_top):
 
 def linear_interpolation(top, bottom, original):
     #top과 bottom을 이은 직선의 기울기
-    inclination = (bottom[1] - top[1]) / (top[0] - bottom[0])
+    inclination = (top[1] - bottom[1]) / (top[0] - bottom[0])
     #그 직선이 이미지 바닥에 닿는 점 x좌표
     x_bottom = (original.shape[0] - bottom[1] + (inclination * bottom[0])) / inclination
-    image_bottom = (x_bottom, original.shape[0])
     #그 직선이 이미지 상단에 닿는 점 x좌표
     x_top = (0 - bottom[1] + (inclination * bottom[0])) / inclination
+    
+    image_bottom = (x_bottom, original.shape[0])
     image_top = (x_top, 0)
+    points = [top, bottom, image_top, image_bottom]
+
     #바닥~bottom 거리 / 바닥~상단 거리 = 바닥으로부터 거리 비율
-    bottom_ratio = math.sqrt((image_bottom[0] - bottom[0])**2 + (image_bottom[1] - bottom[1])**2) / math.sqrt((image_top[0] - image_bottom[0])**2 + (image_top[1] - image_bottom[1]))
-    return bottom_ratio
+    bottom_ratio = math.sqrt((image_bottom[0] - bottom[0])**2 + (image_bottom[1] - bottom[1])**2) / math.sqrt((image_top[0] - image_bottom[0])**2 + (image_top[1] - image_bottom[1])**2)
+    top_ratio = math.sqrt((image_top[0] - top[0])**2 + (image_top[1] - top[1])**2) / math.sqrt((image_top[0] - image_bottom[0])**2 + (image_top[1] - image_bottom[1])**2)
+    print("top, bottom ratio : ", top_ratio, bottom_ratio)
+    return bottom_ratio, points
 
 def find_points_from_edges_image(edges):
     """
@@ -104,8 +109,7 @@ def find_points_from_edges_image(edges):
     for contour in contours:
         perimeter = cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-        if len(approx) <= 6:
-            hexagon_contours.append(approx)
+        hexagon_contours.append(approx)
     
     # 근사화된 윤곽선에서 각 꼭지점의 좌표 추출 및 표시
     points = []
@@ -227,6 +231,9 @@ def find(edges, original, box, original_ratio, params, show=False):
             plt.scatter(x, y, color='red', s=10)
         plt.show()
 
+    if(len(points) > 6 or len(points) <= 0):
+        return (0, 0, 0)
+
     top, bottom, left_top, left_bottom, right_top, right_bottom = classify_points(points)
     #좌표 원본이미지에 맞게 보정
 
@@ -242,8 +249,12 @@ def find(edges, original, box, original_ratio, params, show=False):
         plt.show()
 
     #상자가 이미지 밑부터 어디까지 떨어졌는지 비율
-    bottom_ratio = linear_interpolation(top, bottom, original)
-
+    bottom_ratio, line = linear_interpolation(top, bottom, original)
+    if(show):
+        plt.imshow(original)
+        for x, y in line:
+            plt.scatter(x, y, color='red', s=10)
+        plt.show()
     #상자 왼쪽밑 ~ 오른쪽위 거리
     diagonal = calc_diagonal(left_bottom, right_top)
 
@@ -288,5 +299,5 @@ def find(edges, original, box, original_ratio, params, show=False):
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width, diagonal, bottom_ratio)
     #TODO: 길이 상수값 나중에 실험 후 확인
-    w, h, t = w/1.6, h/1.6, t/1.6
+    w, h, t = w*2, h*2, t*2
     return (w, h, t)
