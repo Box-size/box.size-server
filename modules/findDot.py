@@ -7,7 +7,7 @@ import math
 실제 계산
 1. crop한 이미지 상의 좌표를 구함
 2. 원본 사진으로 좌표 이동
-3. 이미지 상의 상자 크기 구하기(이때, 상자 크기 정규화로 3D상에 표현, width=100으로 산정)
+3. 이미지 상의 상자 크기 구하기(이때, 상자 크기 정규화로 3D상에 표현, width=100으로 산정 후 대각선 길이와 이미지 밑부분으로 부터의 거리 곱)
 4. 초점거리, 원본사진의 중점, 2D좌표, 이미자 상의 박스 크기를 이용해 임의로 정한 3D좌표를 이용해 카메라 외부 파라미터(rvec, tvec)을 구함
 5. Rodrigues(rvec)으로 진짜 카메라 정보를 얻은 후, 실제 월드 좌표계의 박스 한 점과, 카메라의 좌표를 구한후 둘 사이 거리 구함
 6. 카메라 초점거리 : 실제 카메라와 물체간 거리 = 이미지 상 박스 크기 : 실제 박스크기 비례식을 이용해 박스 크기 산출
@@ -81,11 +81,15 @@ def calc_diagonal(left_bottom, right_top):
     return math.sqrt((left_bottom[0] - right_top[0])**2 + (left_bottom[1] - right_top[1])**2) / 100
 
 def linear_interpolation(top, bottom, original):
+    #top과 bottom을 이은 직선의 기울기
     inclination = (bottom[1] - top[1]) / (top[0] - bottom[0])
+    #그 직선이 이미지 바닥에 닿는 점 x좌표
     x_bottom = (original.shape[0] - bottom[1] + (inclination * bottom[0])) / inclination
     image_bottom = (x_bottom, original.shape[0])
+    #그 직선이 이미지 상단에 닿는 점 x좌표
     x_top = (0 - bottom[1] + (inclination * bottom[0])) / inclination
     image_top = (x_top, 0)
+    #바닥~bottom 거리 / 바닥~상단 거리 = 바닥으로부터 거리 비율
     bottom_ratio = math.sqrt((image_bottom[0] - bottom[0])**2 + (image_bottom[1] - bottom[1])**2) / math.sqrt((image_top[0] - image_bottom[0])**2 + (image_top[1] - image_bottom[1]))
     return bottom_ratio
 
