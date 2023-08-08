@@ -14,7 +14,7 @@ def findRT(image):
 
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (4,7),None)
+    ret, corners = cv2.findChessboardCorners(gray, (4,7),flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE + cv2.CALIB_CB_FAST_CHECK)
 
     # If found, add object points, image points (after refining them)
     if ret == True:
@@ -23,10 +23,10 @@ def findRT(image):
         imgpoints.append(corners2)
 
         # Draw and display the corners
-        #image = cv2.drawChessboardCorners(image, (4,7), corners2,ret)
-        #image = cv2.resize(image,dsize=(800,600))
-        #cv2.imshow('img',image)
-        #cv2.waitKey(0)
+        image = cv2.drawChessboardCorners(image, (4,7), corners2,ret)
+        image = cv2.resize(image,dsize=(800,600))
+        cv2.imshow('img',image)
+        cv2.waitKey(0)
 
         ret, mtx, dist, rvec, tvec = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         fx, fy = mtx[0][0], mtx[1][1]
@@ -50,5 +50,5 @@ def findParams(image_PIL):
 
 if __name__ == '__main__':
     
-    image_PIL = Image.open('modules/images_cali/check2.jpg')
+    image_PIL = Image.open('modules/images_cali/check.jpg')
     print(findParams(image_PIL))
