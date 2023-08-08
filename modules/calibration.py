@@ -32,8 +32,8 @@ def findRT(image):
         fx, fy = mtx[0][0], mtx[1][1]
         cx, cy = mtx[0][2], mtx[1][2]
     else:
-        #TODO : 실패하였을 경우 작성하기.
-        pass
+        return 0, 0, 0, 0, 0, 0
+        
 
     #print(rvec, dist, fx, fy, cx, cy, sep="\n")
     return rvec[0], dist, fx, fy, cx, cy
@@ -50,5 +50,5 @@ def findParams(image_PIL):
 
 if __name__ == '__main__':
     
-    image_PIL = Image.open('modules/images_cali/check.jpg')
+    image_PIL = Image.open('modules/images_cali/checkfail.jpg')
     print(findParams(image_PIL))
