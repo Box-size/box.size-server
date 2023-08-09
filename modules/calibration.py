@@ -1,7 +1,6 @@
 import cv2
 from PIL import Image
 import numpy as np
-import time
 from pebble import ProcessPool
 from concurrent.futures import TimeoutError
 
@@ -21,7 +20,7 @@ def findRT(image):
 
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 
-    #타임아웃 20초로 스케쥴 예약
+    #타임아웃 20초로 스케쥴 예약(멀티프로세싱 이용)
     with ProcessPool(max_workers=6) as pool:
         future = pool.schedule(chess, args=[gray], timeout=20)
 
