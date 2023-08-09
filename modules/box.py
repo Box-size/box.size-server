@@ -11,6 +11,29 @@ from PIL import Image
 import numpy as np
 import cv2
 from modules import detector, simplifier, findDot, calibration
+from PIL.ExifTags import TAGS
+
+def rotate_image_with_exif(image):
+    
+    try:
+        # 이미지의 Exif 메타데이터 읽기
+        exif = image._getexif()
+        if exif is not None:
+            for tag, value in exif.items():
+                tag_name = TAGS.get(tag, tag)
+                if tag_name == 'Orientation':
+                    if value == 3:
+                        image = image.rotate(180, expand=True)
+                    elif value == 6:
+                        image = image.rotate(270, expand=True)
+                    elif value == 8:
+                        image = image.rotate(90, expand=True)
+                    break
+    except AttributeError:
+        pass  # Exif 정보가 없는 경우
+
+    return image
+
 
 def calculate_box_size(image : Image, params, show=False):
 
@@ -48,9 +71,10 @@ def show(img):
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images_cali/st2.jpg") # 이미지 테스트
-    image_cali = Image.open("modules/images_cali/check2.jpg") #calibration
-
+    image = Image.open("modules/images_cali/bbox.jpg") # 이미지 테스트
+    image_cali = Image.open("modules/images_cali/check3.jpg") #calibration
+    image = rotate_image_with_exif(image)
+    image_cali = rotate_image_with_exif(image_cali)
     params = calculate_camera_parameters(image_cali)
     print("calculate_camera_parameters 결과:", params)
     calculate_box_size(image, params, show=True)
