@@ -21,7 +21,7 @@ def findRT(image):
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 
     #타임아웃 20초로 스케쥴 예약(멀티프로세싱 이용)
-    with ProcessPool(max_workers=6) as pool:
+    with ProcessPool() as pool:
         future = pool.schedule(chess, args=[gray], timeout=20)
 
     #결과값을 시간 내에 가져왔을 경우
