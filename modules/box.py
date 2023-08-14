@@ -71,8 +71,8 @@ def show(img):
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images_cali/bbox.jpg") # 이미지 테스트
-    image_cali = Image.open("modules/images_cali/check3.jpg") #calibration
+    image = Image.open("modules/images_cali/tt1.jpg") # 이미지 테스트
+    image_cali = Image.open("modules/images_cali/ch.jpg") #calibration
     image = rotate_image_with_exif(image)
     image_cali = rotate_image_with_exif(image_cali)
     params = calculate_camera_parameters(image_cali)
