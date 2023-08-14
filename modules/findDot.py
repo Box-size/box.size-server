@@ -66,16 +66,20 @@ def calc_pixel_w_h(top, bottom, left_top, left_bottom, right_top, right_bottom, 
     이미지 좌표계 상의 가로, 세로, 높이를 추정하는 함수
     """
 
-    width = (math.sqrt((top[0] - left_top[0])**2 + (top[1] - left_top[1])**2) +
-             math.sqrt((bottom[0] - right_bottom[0])**2 + (bottom[1] - right_bottom[1])**2)) / 2
-    height = (math.sqrt((top[0] - right_top[0])**2 + (top[1] - right_top[1])**2) +
-             math.sqrt((bottom[0] - left_bottom[0])**2 + (bottom[1] - left_bottom[1])**2)) / 2
+    top_width = math.sqrt((top[0] - left_top[0])**2 + (top[1] - left_top[1])**2)
+    bottom_width = math.sqrt((bottom[0] - right_bottom[0])**2 + (bottom[1] - right_bottom[1])**2)
+    top_height = math.sqrt((top[0] - right_top[0])**2 + (top[1] - right_top[1])**2)
+    bottom_height = math.sqrt((bottom[0] - left_bottom[0])**2 + (bottom[1] - left_bottom[1])**2)
     tall = (math.sqrt((left_top[0] - left_bottom[0])**2 + (left_top[1] - left_bottom[1])**2) + 
             math.sqrt((right_top[0] - right_bottom[0])**2 + (right_top[1] - right_bottom[1])**2)) / 2
+    
+    width = bottom_width**2 / top_width
+    height = bottom_height**2 / top_height
+
     h_ratio = height / width
     t_ratio = tall / width
     print("(calc_pixel_w_h)width, h_ratio, t_ratio:", width, h_ratio, t_ratio)
-    return 100 * diagonal * bottom_ratio, 100 * h_ratio * diagonal * bottom_ratio, 100 * t_ratio * diagonal * bottom_ratio, width
+    return 100 * 1, 100 * h_ratio * 1, 100 * t_ratio * 1, width
 
 def calc_diagonal(left_bottom, right_top):
     return math.sqrt((left_bottom[0] - right_top[0])**2 + (left_bottom[1] - right_top[1])**2) / 100
@@ -191,9 +195,9 @@ def calculate_real_length(width, height, tall, distance, fx, img_width, diagonal
     카메라와의 거리를 바탕으로 실제 거리 계산
     """
     #카메라와 거리 : 초점거리 = 실제 박스크기 : 이미지상 박스크기
-    real_width = round(img_width * (width/(100*diagonal*bottom_ratio)) * distance / fx, 2)
-    real_height = round(img_width * (height/(100*diagonal*bottom_ratio)) * distance / fx, 2)
-    real_tall = round(img_width * (tall/(100*diagonal*bottom_ratio)) * distance / fx, 2)
+    real_width = round(img_width * (width/(100*1)) * distance / fx, 2)
+    real_height = round(img_width * (height/(100*1)) * distance / fx, 2)
+    real_tall = round(img_width * (tall/(100*1)) * distance / fx, 2)
 
     return real_width, real_height, real_tall
 
