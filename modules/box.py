@@ -41,6 +41,7 @@ def calculate_box_size(image : Image, params, show=False):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     box, xyxy = detector.detect(image) #박스 감지하고 crop 리턴
+    imgshow(box)
 
     box, original_ratio = simplifier.simplify(box) #배경 지우고, 외곽선 검출
 
@@ -66,15 +67,15 @@ def calculate_camera_parameters(image : Image):
 
 
 #TEST & DEBUG
-def show(img):
+def imgshow(img):
     cv2.imshow("img",img)
     cv2.waitKey()
 
 if __name__ == '__main__':
-    image = Image.open("modules/images_cali/st2.jpg") # 이미지 테스트
+    image = Image.open("modules/640/tt2.jpg") # 이미지 테스트
     image_cali = Image.open("modules/images_cali/ch.jpg") #calibration
     image = rotate_image_with_exif(image)
     image_cali = rotate_image_with_exif(image_cali)
     params = calculate_camera_parameters(image_cali)
     print("calculate_camera_parameters 결과:", params)
-    calculate_box_size(image, params, show=True)
+    calculate_box_size(image, params, show=True)  

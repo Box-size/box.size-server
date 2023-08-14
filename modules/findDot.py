@@ -199,6 +199,11 @@ def calculate_real_length(width, height, tall, distance, fx, img_width, diagonal
     real_height = round(img_width * (height/(100*1)) * distance / fx, 2)
     real_tall = round(img_width * (tall/(100*1)) * distance / fx, 2)
 
+    constant = distance / 690.3625 #640이미지 기준. calibration마다 달라질 수 있음, ch.jpg 기준 tt1과 tt2의 계산 결과 토대로 나온 수치.
+    real_width  = 2 * real_width / constant
+    real_height  = 2 * real_height / constant
+    real_tall  = 2 * real_tall / constant
+
     return real_width, real_height, real_tall
 
 def adjust_points(top, bottom, left_top, left_bottom, right_top, right_bottom, away_y, original_ratio, box):
@@ -302,6 +307,6 @@ def find(edges, original, box, original_ratio, params, show=False):
     print("distance:", distance)
 
     w, h, t = calculate_real_length(width, height, tall, distance, fx, img_width, diagonal, bottom_ratio)
-    #TODO: 길이 상수값 나중에 실험 후 확인
-    w, h, t = w*2, h*2, t*2
+  
+  
     return (w, h, t)

@@ -37,10 +37,32 @@ def simplify(input):
     output = remove(input,
         bgcolor=[0,0,0,255])
     
+    '''
+    output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+
+    black = np.zeros((1500,1500),np.uint8)
+    for i in range(output.shape[0]):
+        for j in range(output.shape[1]):
+            black[i + (1500-output.shape[0])//2][j + (1500-output.shape[1])//2] = output[i][j]
+    
+    output, original_ratio = resize_ratio(black)
+    cv2.imshow("s",output)
+    cv2.waitKey()'''
+
+    '''
+    cv2.imshow("s",output)
+    cv2.waitKey()
+    something = np.zeros(output.shape,np.uint8)
+    for x in range(output.shape[0]):
+        for y in range(output.shape[1]):
+            r, g, b = output[x][y][:3]
+            if(r+b+g>10):
+                something[x][y] = np.array([255,255,255,255])
+    output = something'''
 
     # Canny를 통해 외곽선만 검출(threshold는 통상적인 값, 추후 실험을 통해 변경 필요)
     # 이미지, Threshold1: 작을 수록 선이 조금더 길게 나옴, Threshold2: 작을 수록 선이 더 많이 검출됨
-    nuki = cv2.Canny(output, 50, 100)
+    nuki = cv2.Canny(output, 70,140)
 
     # morphology를 위한 kernel 제작 nxn의 kernel로 사각형(MORPH_RECT), 즉 커널이 전부 1로 채워짐
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
